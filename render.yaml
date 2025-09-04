@@ -1,3 +1,4 @@
+
 services:
   - type: web
     name: performance-dashboard-v2
@@ -7,5 +8,7 @@ services:
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: SECRET_KEY
+        value: your_secure_key_here  # Replace with a strong secret key
     plan: free
     autoDeploy: true
