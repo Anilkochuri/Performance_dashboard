@@ -1,8 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Replace with a secure key in production
+app.secret_key = 'your_secret_key'
 
 # Login credentials dictionary
 login_credentials = {
@@ -33,6 +32,6 @@ def dashboard():
     else:
         return redirect(url_for('login'))
 
+# This block is for local testing only; Gunicorn will use the app instance directly
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(debug=True)
