@@ -34,6 +34,3 @@ def export(filetype):
 def logout():
     # Clear session
     ...
-
-if __name__ == '__main__':
-    app.run(debug=True)
