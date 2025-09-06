@@ -5,3 +5,5 @@ services:
     plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
+    environment:
+      pythonVersion: 3.10
