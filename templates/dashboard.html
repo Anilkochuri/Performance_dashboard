@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Dashboard</h1>
+
+    <!-- Export Buttons -->
+    <div>
+        <form action="/export/csv" method="get" style="display:inline;">
+            <button type="submit">Export CSV</button>
+        </form>
+        <form action="/export/excel" method="get" style="display:inline;">
+            <button type="submit">Export Excel</button>
+        </form>
+        <form action="/export/word" method="get" style="display:inline;">
+            <button type="submit">Export Word</button>
+        </form>
+    </div>
+
+    <!-- Render Table -->
+    <div>
+        {{ table|safe }}
+    </div>
+
+    <!-- Plotly Chart -->
+    <div id="chart" style="width:100%;height:500px;"></div>
+    <script>
+        var chartData = {{ chart_json|safe }};
+        Plotly.newPlot('chart', chartData.data, chartData.layout);
+    </script>
+</body>
+</html>
