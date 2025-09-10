@@ -9,10 +9,6 @@ app.secret_key = 'your_secret_key'
 # Global variable to store uploaded data
 data = pd.DataFrame()
 
-# Hardcoded credentials
-VALID_USERNAME = 'admin'
-VALID_PASSWORD = 'admin123'
-
 @app.route('/')
 def home():
     return redirect(url_for('login'))
@@ -22,11 +18,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username == VALID_USERNAME and password == VALID_PASSWORD:
+        if username == 'admin' and password == 'admin123':
             session['user'] = username
-            redirect(url_for('dashboard'))
+            return redirect(url_for('dashboard'))  # ✅ Corrected return statement
         else:
-            return render_template('login.html', error='Invalid credentials')
+           ('login.html', error='Invalid credentials')
     return render_template('login.html')
 
 @app.route('/dashboard')
@@ -40,9 +36,7 @@ def dashboard():
         chart_html = fig.to_html(full_html=False)
     return render_template('dashboard.html', chart=chart_html)
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    global data
+@app global data
     if 'file' not in request.files:
         return redirect(url_for('dashboard'))
     file = request.files['file']
