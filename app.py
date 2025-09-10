@@ -19,22 +19,20 @@ def login():
         username = request.form['username']
         password = request.form['password']
         if username == 'admin' and password == 'admin123':
-            session['user'] = username
-            return redirect(url_for('dashboard'))
+            redirect(url_for('dashboard'))
         else:
             return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
 
 @app.route('/dashboard')
-def():
+def dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
     global data
     chart_html = ''
     if not data.empty:
         fig = px.bar(data, x=data.columns[0], y=data.columns[1])
-        chart_html = fig.to_html(full_html=False)
-    return render_template('dashboard.html', chart=chart_html)
+       dashboard.html', chart=chart_html)
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -42,7 +40,7 @@ def upload():
     if 'file' not in request.files:
         return redirect(url_for('dashboard'))
     file = request.files['file']
-   .filename.endswith('.csv'):
+    if file.filename.endswith('.csv'):
         data = pd.read_csv(file)
     return redirect(url_for('dashboard'))
 
