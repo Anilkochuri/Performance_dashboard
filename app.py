@@ -20,7 +20,7 @@ def login():
         password = request.form['password']
         # Simple authentication (replace with real logic)
         if username == 'admin' and password == 'admin':
-           ('dashboard'))
+            return redirect(url_for('dashboard'))
         else:
             return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
