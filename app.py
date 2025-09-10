@@ -20,6 +20,7 @@ def login():
         password = request.form['password']
         # Simple authentication (replace with real logic)
         if username == 'admin' and password == 'admin':
+            session['user'] = username
             return redirect(url_for('dashboard'))
         else:
             return render_template('login.html', error='Invalid credentials')
@@ -62,7 +63,6 @@ def export(format):
         buffer.seek(0)
         return send_file(buffer, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name='data.xlsx')
     elif format == 'word':
-        # Placeholder for Word export logic
         buffer.write(b'Word export not implemented yet.')
         buffer.seek(0)
         return send_file(buffer, mimetype='application/msword', as_attachment=True, download_name='data.doc')
