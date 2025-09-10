@@ -9,6 +9,10 @@ app.secret_key = 'your_secret_key'
 # Global variable to store uploaded data
 data = pd.DataFrame()
 
+# Hardcoded credentials
+VALID_USERNAME = 'admin'
+VALID_PASSWORD = 'admin123'
+
 @app.route('/')
 def home():
     return redirect(url_for('login'))
@@ -18,10 +22,9 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        # Simple authentication (replace with real logic)
-        if username == 'admin' and password == 'admin':
+        if username == VALID_USERNAME and password == VALID_PASSWORD:
             session['user'] = username
-            return redirect(url_for('dashboard'))
+            redirect(url_for('dashboard'))
         else:
             return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
