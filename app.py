@@ -29,10 +29,16 @@ def login():
 def dashboard():
     if 'username' not in session:
         return redirect(url_for('login'))
-   ('/logout')
+    return render_template('dashboard.html')
+
+@app.route('/logout')
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=10000 GitHub.
+3. Wait for Render to auto-deploy.
+4. Test the live app again at https://performance-dashboard-v2.onrender.com
+
+Let me know once you’ve pushed it — I’ll help verify the deployment!
