@@ -1,31 +1,60 @@
-import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session
+import pandas as pd
 import plotly.express as px
-import plotly.io as pio
+import plotly
+import json
 
-# Existing app setup...
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+# Global variable to store uploaded data
+uploaded_data = pd.DataFrame()
+
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username == 'admin' and password == 'password':
+            session['logged_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            error = 'Invalid Credentials. Please try again.'
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
+    global uploaded_data
     table_html = None
-    charts_html = None
+    bar_chart = None
+    pie_chart = None
 
-    if request.method == 'POST':
-        file = request.files['file']
-        if file.filename.endswith('.csv'):
-            df = pd.read_csv(file)
+    if not session.get('logged_in'):
+        return redirect(url_for('            table_html = uploaded_data.to_html(classes='table table-striped', index=False)
 
-            # Table
-            table_html = df.to_html(classes='table table-striped', index=False)
+            # Bar Chart
+            if uploaded_data.shape[1] >= 2:
+                bar_fig = px.bar(uploaded_data, x=uploaded_data.columns[0], y=uploaded_data.columns[1], title='Bar Chart')
+                bar_chart = json.dumps(bar_fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-            # Charts
-            fig1 = px.bar(df, x=df.columns[0], y=df.columns[1], title='Bar Chart')
-            fig2 = px.pie(df, names=df.columns[0], values=df.columns[1], title='Pie Chart')
-            fig3 = px.line(df, x=df.columns[0], y=df.columns[1], title='Line Chart')
+            # Pie Chart
+            if uploaded_data[uploaded_data.columns[0]].dtype == 'object':
+                pie_data = uploaded_data[uploaded_data.columns[0]].value_counts().reset_index()
+                pie_data.columns = ['Category', 'Count']
+                pie_fig = px.pie(pie_data, names='Category', values='Count', title='Pie Chart')
+                pie_chart = json.dumps(pie_fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-            charts_html = pio.to_html(fig1, full_html=False) + pio.to_html(fig2, full_html=False) + pio.to_html(fig3, full_html=False)
+    return render_template('dashboard.html', table_html=table_html, bar_chart=bar_chart, pie_chart=pie_chart)
 
-    return render_template('dashboard.html', table=table_html, charts=charts_html)
+if __name__ == '__main__':
+    app.run(debug=True)
