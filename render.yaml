@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: performance-dashboard
-    env: python
-    buildCommand: cd Performance_dashboard && pip install -r requirements.txt
-    startCommand: cd Performance_dashboard && python app.py
-    autoDeploy: true
