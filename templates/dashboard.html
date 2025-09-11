@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome to the Dashboard</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+    {% if tables %}
+        <h2>Uploaded Data</h2>
+        {% for table in tables %}
+            {{ table|safe }}
+        {% endfor %}
+    {% endif %}
+</body>
+</html>
