@@ -1,6 +1,0 @@
-flask
-pandas
-plotly
-openpyxl
-python-docx
-werkzeug
