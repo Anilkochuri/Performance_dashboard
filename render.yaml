@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: performance-dashboard-v2
+    env: python
+    pythonVersion: 3.13.2
+    buildCommand: pip install --prefer-binary -r requirements.txt
+    startCommand: gunicorn app:app
+    autoDeploy: true
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        value: your_secret_key_here
