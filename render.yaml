@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: performance-dashboard
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install --prefer-binary -r requirements.txt
+    startCommand: gunicorn app:app
+    runtime: python
+    pythonVersion: 3.13.2
