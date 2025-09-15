@@ -8,4 +8,3 @@ openpyxl==3.1.5
 python-docx==1.2.0
 gunicorn==21.2.0
 kaleido==0.2.1
-dash==2.16.1
