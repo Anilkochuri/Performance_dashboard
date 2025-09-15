@@ -1,0 +1,11 @@
+# Core dependencies for Performance_dashboard Flask app
+setuptools==68.2.2
+wheel==0.42.0
+Flask==3.1.2
+pandas==2.3.2
+plotly==6.3.0
+openpyxl==3.1.5
+python-docx==1.2.0
+gunicorn==21.2.0
+kaleido==0.2.1
+dash==2.16.1
