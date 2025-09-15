@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Upload CSV File</h2>
+<form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" required>
+    <button type="submit">Upload</button>
+</form>
+
+<hr>
+
+<h2>Plotly Chart</h2>
+<div id="chart">
+    {{ plot_div|safe }}
+</div>
+
+<hr>
+
+<h2>Results Table</h2>
+<div>
+    {{ table_html|safe }}
+</div>
+
+<hr>
+
+<h3>Export Options</h3>
+<a href="{{ url_for('export_csv') }}" class="btn">Export CSV</a>
+<a href="{{ url_for('export_excel') }}" class="btn">Export Excel</a>
+<a href="{{ url_for('export_word') }}" class="btn">Export Word</a>
+{% endblock %}
