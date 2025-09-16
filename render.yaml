@@ -5,6 +5,6 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install --prefer-binary -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: python app.py
     runtime: python
     pythonVersion: 3.13.2
