@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Performance Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        img { max-width: 600px; display: block; margin-bottom: 10px; }
+        h4 { margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <h2>Performance Charts</h2>
+    {% for chart in charts %}
+        <h4>{{ chart.replace('_', ' ').replace('.png', '') }}</h4>
+        {{ url_for(
+        <p>/download/{{ chart }}Download {{ chart }}</a></p>
+    {% endfor %}
+</body>
+</html>
