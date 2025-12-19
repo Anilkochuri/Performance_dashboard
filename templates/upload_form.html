@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Upload CSV/XLSX</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 16px; }
+    .card { max-width: 900px; margin: 0 auto; border: 1px solid #ddd; padding: 16px; border-radius: 8px; }
+    .hint { color: #666; font-size: 13px; }
+    .btn { display:inline-block; background:#1976d2;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;text-decoration:none; }
+    .btn:hover { background:#145ca3; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Upload CSV / Excel (.xlsx)</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".csv,.xlsx" required />
+      <br/><br/>
+      <button class="btn" type="submit">Upload</button>
+      <a class="btn" href="/version">Version</a>
+    </form>
+    <p class="hint">
+      Excel sheets (if available): <code>Observations</code>, <code>Transaction Summary</code>, <code>DB_HITS</code><br/>
+      CSV columns (optional): <code>transaction_name</code>, <code>response_time_ms</code>, <code>success</code>, <code>response_code</code>
+    </p>
+  </div>
+</body>
+</html>

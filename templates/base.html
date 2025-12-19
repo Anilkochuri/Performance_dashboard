@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Performance Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body class="light-blue">
+  <header class="global-header">
+    <div class="brand">
+      <span class="logo">PD</span>
+      <span class="title">Performance Dashboard</span>
+    </div>
+    <nav class="actions">
+      <a href="/export/xlsx" class="btn">Export Excel</a>
+      <a href="/export/pdf" class="btn">Export PDF (All Tabs)</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
