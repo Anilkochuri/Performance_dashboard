@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - Performance Dashboard</title>
+  <style>
+    body{font-family: Arial, sans-serif; background:#f5fbff;}
+    .box{max-width:380px; margin:60px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08);}
+    label{display:block; margin-top:12px;}
+    input{width:100%; padding:8px; margin-top:6px;}
+    button{margin-top:12px; padding:8px 12px;}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Login</h2>
+    <form method="post">
+      <label>Username<input name="username" /></label>
+      <label>Password<input name="password" type="password" /></label>
+      <button type="submit">Login</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}<p style="color:#e53e3e;">{{ messages[0] }}</p>{% endif %}
+    {% endwith %}
+  </div>
+</body>
+</html>
