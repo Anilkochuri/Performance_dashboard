@@ -1,1 +1,31 @@
 
+/* Base */
+body { margin: 0; background: #f5fbff; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+/* Topbar fixed with safe z-index */
+.topbar {
+  position: fixed; /* keep header fixed */
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: #5aa7ff; color: #fff;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px;
+  z-index: 1000;
+}
+
+/* Main container starts below header */
+.container { margin: 72px auto 24px; max-width: 1200px; background:#fff; padding:16px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.grid { display:grid; grid-template-columns: 280px 1fr; gap:16px; }
+.card { background:#fff; border:1px solid #e7eef8; border-radius:8px; padding:12px; overflow:auto; position:relative; z-index:1; }
+.links a { margin-left:16px; color:#1a202c; text-decoration: underline; }
+
+/* Tables */
+table { width:100%; border-collapse: collapse; }
+th, td { border:1px solid #e7eef8; padding:8px; text-align:left; font-size:13px; }
+thead th { background:#eef6ff; position: sticky; top: 0; z-index: 5; }
+
+/* ---------- Overlay/Backdrop Neutralizers ---------- */
+.modal-backdrop,
+.modal-backdrop.show { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+body.modal-open { overflow: auto !important; padding-right: 0 !important; }
+#overlay, .overlay, .backdrop { display: none !important; opacity: 0 !important; pointer-events: none !important; }
