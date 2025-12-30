@@ -1,0 +1,11 @@
+timeStamp,label,elapsed(ms),responseCode,success,bytes,sentBytes
+10:00:05,Transaction1,214,200,TRUE,7,0
+10:00:10,Transaction2,179,200,TRUE,0,13
+10:00:15,Transaction3,111,200,TRUE,0,13
+10:00:20,Transaction4,224,200,TRUE,0,13
+10:00:25,Transaction5,195,200,TRUE,7,0
+10:00:30,Transaction6,135,200,TRUE,7,0
+10:00:35,Transaction7,273,200,TRUE,0,13
+10:00:40,Transaction8,292,200,TRUE,0,13
+10:00:45,Transaction9,334,200,TRUE,0,13
+10:00:50,Transaction10,159,200,TRUE,7,0
