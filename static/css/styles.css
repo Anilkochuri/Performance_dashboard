@@ -1,0 +1,5 @@
+
+body { background-color:#f7fbff; }
+.global-header { background:#d9ebff; padding:.75rem 1rem; display:flex; justify-content:space-between; align-items:center; }
+.global-header .brand { font-weight:600; }
+.chart-block { min-height: 420px; }

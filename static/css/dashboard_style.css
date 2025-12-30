@@ -1,0 +1,29 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    margin: 0;
+    padding: 0;
+}
+header, footer {
+    background-color: #007acc;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+}
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+.chart-box {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 15px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+.chart-box:hover {
+    transform: scale(1.02);
+}
