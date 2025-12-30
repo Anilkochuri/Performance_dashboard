@@ -1,0 +1,39 @@
+<!-- DB_HITS panel: table + chart (fixed numeric coercion) -->
+<section id="dbhits" class="panel">
+  {% if dashboard_data and dashboard_data.dbhits %}
+    <h3>DB_HITS</h3>
+    <table>
+      <thead>
+        <tr>
+          {% for col in dashboard_data.dbhits.columns %}
+            <th>{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in dashboard_data.dbhits.rows %}
+          <tr>
+            {% for col in dashboard_data.dbhits.columns %}
+              <td>{{ row[col] }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div id="dbhits_bar" style="height:420px; margin-top:16px;"></div>
+    <script>
+      (function(){
+        const DB = {{ dashboard_data.dbhits | tojson }};
+        const labels = DB.rows.map(r => r[DB.columns[0]]);
+        const counts = DB.rows.map(r => Number(r[DB.columns[1]]) || 0);
+        const trace = { type: 'bar', x: labels, y: counts, marker: { color: '#7f8c8d' } };
+        const layout = { title: 'DB_HITS — Counts by Query', yaxis: { title: 'Hits (count)', rangemode: 'tozero' }, xaxis: { title: DB.columns[0] } };
+        Plotly.newPlot('dbhits_bar', [trace], layout);
+      })();
+    </script>
+  {% elif dashboard_data %}
+    <p>DB_HITS Sheet is not available.</p>
+  {% else %}
+    <p>Upload a file to view DB_HITS.</p>
+  {% endif %}
+</section>

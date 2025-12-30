@@ -1,26 +1,37 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Performance Dashboard{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cognizant — Performance Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
 </head>
-<body class="light-blue">
+<body>
+  {% if session.get('user') %}
   <header class="global-header">
-    <div class="brand">
-      <span class="logo">PD</span>
-      <span class="title">Performance Dashboard</span>
+    <div class="brand">Cognizant — Performance Dashboard</div>
+    <div class="actions">
+      {% if filename %}
+        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('export_xlsx') }}">Export XLSX</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('export_pdf') }}">Export PDF</a>
+      {% endif %}
+      <a class="btn btn-outline-danger btn-sm" href="{{ url_for('logout') }}">Logout</a>
     </div>
-    <nav class="actions">
-      <a href="/export/xlsx" class="btn">Export Excel</a>
-      <a href="/export/pdf" class="btn">Export PDF (All Tabs)</a>
-    </nav>
   </header>
-  <main class="container">
+  {% endif %}
+  <main class="container mt-3">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info" role="alert">
+          {% for msg in messages %}{{ msg }}<br>{% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

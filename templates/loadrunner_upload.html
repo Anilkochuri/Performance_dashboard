@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Upload LoadRunner XLSX{% endblock %}
+{% block content %}
+<h2>Upload LoadRunner XLSX</h2>
+<p>Expected sheet name: <b>{{ sheet_name }}</b></p>
+<form method="post" enctype="multipart/form-data" style="margin-top:12px;">
+  <input type="file" name="file" accept=".xlsx" required>
+  <button type="submit">Upload</button>
+</form>
+{% endblock %}

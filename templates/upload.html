@@ -1,12 +1,9 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<h2>Upload XLSX</h2>
-<form method="post" enctype="multipart/form-data" action="{{ url_for('upload') }}" style="max-width: 480px;">
-  <input type="file" name="file" accept=".xlsx" required style="width: 100%; padding: 8px;" />
-  <div style="margin-top: 8px;">
-    <button type="submit" style="padding: 8px 12px;">Upload</button>
-  </div>
+<h4>Upload Results File</h4>
+<form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="d-flex gap-2">
+  <input type="file" name="file" accept=".csv,.xlsx" class="form-control" required>
+  <button type="submit" class="btn btn-primary">Upload & Visualize</button>
 </form>
-<p style="margin-top: 12px;"><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
 {% endblock %}

@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Dashboard</title>
+  <!-- Plotly CDN -->
+  <script src="https://cdn.plot.ly/plotly-2.31.1.min.js"></script>
+  <style>
+    :root {
+      --primary: #e6f2ff; /* light blue theme */
+      --accent: #1f77b4; /* plotly blue */
+      --pass: #2ecc71;   /* green */
+      --fail: #e74c3c;   /* red */
+      --text: #2c3e50;
+    }
+    body { font-family: Arial, Helvetica, sans-serif; background: #fff; color: var(--text); margin:0; }
+    header { background: var(--primary); padding: 12px 20px; border-bottom: 1px solid #cce0ff; }
+    header h1 { margin:0; font-size: 20px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 10px; flex-wrap: wrap; padding: 12px 20px; background: #fafafa; border-bottom: 1px solid #eee; }
+    .tablink { border: 1px solid #ccc; background: #f8f8f8; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    .tablink.active { background: var(--primary); border-color: #bcd4ff; }
+
+    .tab-content { display: none; padding: 16px 20px; }
+    .tab-content.active { display: block; }
+
+    /* Controls panel */
+    .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .controls label { font-size: 14px; }
+    select, input[type="number"] { padding: 6px 8px; }
+
+    /* Chart container */
+    #throughput_chart { width: 100%; height: 560px; }
+
+    /* Helper */
+    .muted { color: #6c7a89; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Performance Dashboard</h1>
+  </header>
+
+  <!-- Tabs Bar (renamed Transaction Analytics -> Throughput) -->
+  <div class="tabs">
+    <button class="tablink" onclick="openTab('interactiveCharts')">Interactive Charts</button>
+    <button class="tablink" onclick="openTab('observations')">Observations</button>
+    <button class="tablink" onclick="openTab('phaseDurations')">Phase Durations</button>
+    <button class="tablink" onclick="openTab('transactionSummary')">Transaction Summary</button>
+    <button class="tablink" onclick="openTab('totals')">Totals</button>
+    <button class="tablink active" onclick="openTab('throughput')">Throughput</button>
+  </div>
+
+  <!-- Other tabs (placeholders) -->
+  <section id="interactiveCharts" class="tab-content"> <p class="muted">Interactive Charts content</p> </section>
+  <section id="observations" class="tab-content"> <p class="muted">Observations content</p> </section>
+  <section id="phaseDurations" class="tab-content"> <p class="muted">Phase Durations content</p> </section>
+  <section id="transactionSummary" class="tab-content"> <p class="muted">Transaction Summary content</p> </section>
+  <section id="totals" class="tab-content"> <p class="muted">Totals content</p> </section>
+
+  <!-- Throughput tab (new) -->
+  <section id="throughput" class="tab-content active">
+    <div class="controls">
+      <label>
+        Chart Type:
+        <select id="chartType">
+          <option value="stacked-horizontal" selected>Stacked Horizontal</option>
+          <option value="grouped-vertical">Grouped Vertical</option>
+          <option value="stacked-vertical">Stacked Vertical</option>
+        </select>
+      </label>
+      <label>
+        Top-N:
+        <select id="topN">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="all">All</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="showPass" checked> Show Pass</label>
+      <label><input type="checkbox" id="showFail" checked> Show Fail</label>
+      <span class="muted">Hover bars to see full transaction name & users.</span>
+    </div>
+
+    <div id="throughput_chart"></div>
+  </section>
+
+  <script>
+    // Basic tab switching
+    function openTab(id) {
+      document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelector(`[onclick="openTab('${id}')"]`).classList.add('active');
+      document.getElementById(id).classList.add('active');
+    }
+
+    // Data injected from Flask (with safe fallbacks for static testing)
+    const transactions = {{ transactions|tojson if transactions is defined else '[]' }};
+    const passCounts   = {{ passCounts|tojson if passCounts is defined else '[]' }};
+    const failCounts   = {{ failCounts|tojson if failCounts is defined else '[]' }};
+    const users        = {{ users|tojson if users is defined else '[]' }};
+
+    // Utility: build hover text per transaction
+    function buildHover(txs, passes, fails, usersArr) {
+      return txs.map((t, i) => `Transaction: ${t}<br>Users: ${usersArr?.[i] ?? 'N/A'}<br>Pass: ${passes?.[i] ?? 0}<br>Fail: ${fails?.[i] ?? 0}`);
+    }
+
+    // Utility: Top-N filter
+    function getTopN(txs, passes, fails, usersArr, N) {
+      const rows = txs.map((t, i) => ({ t, pass: passes[i]||0, fail: fails[i]||0, users: usersArr?.[i]||null }));
+      rows.forEach(r => r.total = r.pass + r.fail);
+      rows.sort((a,b) => b.total - a.total);
+      const take = (N === 'all') ? rows : rows.slice(0, Number(N));
+      return {
+        txs: take.map(r => r.t),
+        passes: take.map(r => r.pass),
+        fails: take.map(r => r.fail),
+        users: take.map(r => r.users)
+      };
+    }
+
+    function renderThroughput() {
+      const chartType = document.getElementById('chartType').value;
+      const topN = document.getElementById('topN').value;
+      const showPass = document.getElementById('showPass').checked;
+      const showFail = document.getElementById('showFail').checked;
+
+      const filtered = getTopN(transactions, passCounts, failCounts, users, topN);
+      const hover = buildHover(filtered.txs, filtered.passes, filtered.fails, filtered.users);
+
+      const traces = [];
+      const common = { hovertext: hover, hoverinfo: 'text+x+y' };
+
+      if (chartType === 'stacked-horizontal') {
+        if (showPass) traces.push({
+          x: filtered.passes, y: filtered.txs, name: 'Pass', type: 'bar', orientation: 'h', marker: {color: getComputedStyle(document.documentElement).getPropertyValue('--pass').trim()}, ...common
+        });
+        if (showFail) traces.push({
+          x: filtered.fails, y: filtered.txs, name: 'Fail', type: 'bar', orientation: 'h', marker: {color: getComputedStyle(document.documentElement).getPropertyValue('--fail').trim()}, ...common
+        });
+        const layout = {
+          title: 'Throughput: Pass & Fail per Transaction',
+          barmode: 'stack',
+          xaxis: { title: 'Count' },
+          yaxis: { title: 'Transaction Name', automargin: true },
+          legend: { orientation: 'h', x: 0, y: 1.1 },
+          margin: { t: 60, b: 40, l: 200, r: 20 },
+          height: Math.max(420, filtered.txs.length * 24)
+        };
+        Plotly.react('throughput_chart', traces, layout, {responsive: true});
+      }
+      else if (chartType === 'grouped-vertical' || chartType === 'stacked-vertical') {
+        if (showPass) traces.push({
+          x: filtered.txs, y: filtered.passes, name: 'Pass', type: 'bar', marker: {color: getComputedStyle(document.documentElement).getPropertyValue('--pass').trim()}, ...common
+        });
+        if (showFail) traces.push({
+          x: filtered.txs, y: filtered.fails, name: 'Fail', type: 'bar', marker: {color: getComputedStyle(document.documentElement).getPropertyValue('--fail').trim()}, ...common
+        });
+        const layout = {
+          title: (chartType === 'grouped-vertical') ? 'Throughput: Pass vs Fail (Grouped)' : 'Throughput: Total Transactions (Stacked)',
+          barmode: (chartType === 'grouped-vertical') ? 'group' : 'stack',
+          xaxis: { title: 'Transaction Name', tickangle: -45, automargin: true },
+          yaxis: { title: 'Count' },
+          legend: { orientation: 'h', x: 0, y: 1.1 },
+          margin: { t: 60, b: 120, l: 60, r: 20 },
+          height: 560
+        };
+        Plotly.react('throughput_chart', traces, layout, {responsive: true});
+      }
+    }
+
+    // Wire events
+    ['chartType','topN','showPass','showFail'].forEach(id => document.getElementById(id).addEventListener('change', renderThroughput));
+
+    // Initial render
+    renderThroughput();
+  </script>
+</body>
+</html>

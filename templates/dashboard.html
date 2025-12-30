@@ -1,0 +1,134 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex gap-2 align-items-center mb-2">
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="d-flex gap-2 w-100">
+    <input type="file" name="file" accept=".csv,.xlsx" class="form-control" required>
+    <button type="submit" class="btn btn-secondary">Upload & Visualize</button>
+  </form>
+</div>
+
+<ul class="nav nav-tabs" id="dashTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="obs-tab" data-bs-toggle="tab" data-bs-target="#obs" type="button" role="tab">Observations</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="ts-tab" data-bs-toggle="tab" data-bs-target="#ts" type="button" role="tab">Transaction Summary (Aggregated)</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="dh-tab" data-bs-toggle="tab" data-bs-target="#dh" type="button" role="tab">DB_HITS</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="vg-tab" data-bs-toggle="tab" data-bs-target="#vg" type="button" role="tab">Various Graphs</button>
+  </li>
+</ul>
+<div class="tab-content" id="dashTabContent">
+  <!-- Observations -->
+  <div class="tab-pane fade show active p-3" id="obs" role="tabpanel" aria-labelledby="obs-tab">
+    {% if observations %}
+      <div class="alert alert-warning">Bands metric: {{ observations.metric }}</div>
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-2"><div class="card text-center"><div class="card-body"><div class="fw-bold">&lt; 5s</div><div>{{ observations.lt_5s }}</div></div></div></div>
+        <div class="col-6 col-md-2"><div class="card text-center"><div class="card-body"><div class="fw-bold">5–10s</div><div>{{ observations.between_5_10s }}</div></div></div></div>
+        <div class="col-6 col-md-2"><div class="card text-center"><div class="card-body"><div class="fw-bold">&gt; 10s</div><div>{{ observations.gt_10s }}</div></div></div></div>
+        <div class="col-6 col-md-2"><div class="card text-center"><div class="card-body"><div class="fw-bold">Total Pass</div><div>{{ observations.total_pass }}</div></div></div></div>
+        <div class="col-6 col-md-2"><div class="card text-center"><div class="card-body"><div class="fw-bold">Total Fail</div><div>{{ observations.total_fail }}</div></div></div></div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-3"><div class="card"><div class="card-body"><div class="fw-bold">Global Min (s)</div><div>{{ observations.global_min }}</div></div></div></div>
+        <div class="col-md-3"><div class="card"><div class="card-body"><div class="fw-bold">Global Avg (s)</div><div>{{ observations.global_avg }}</div></div></div></div>
+        <div class="col-md-3"><div class="card"><div class="card-body"><div class="fw-bold">Global 90th (s)</div><div>{{ observations.global_p90 }}</div></div></div></div>
+        <div class="col-md-3"><div class="card"><div class="card-body"><div class="fw-bold">Global Max (s)</div><div>{{ observations.global_max }}</div></div></div></div>
+      </div>
+      {% if observations.has_ramp and observations.ramp_summary %}
+        <div class="card"><div class="card-body">
+          <div class="fw-bold mb-2">Ramp Phases</div>
+          <ul class="mb-0">
+            {% for seg in observations.ramp_summary %}
+              <li>{{ seg.phase }}: {{ seg.start }} → {{ seg.end }}</li>
+            {% endfor %}
+          </ul>
+        </div></div>
+      {% endif %}
+    {% else %}
+      <p class="text-muted">Upload a file to see observations.</p>
+    {% endif %}
+  </div>
+
+  <!-- Transaction Summary (Aggregated) -->
+  <div class="tab-pane fade p-3" id="ts" role="tabpanel" aria-labelledby="ts-tab">
+    {% if ts_records %}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              {% for col in ts_columns %}<th>{{ col }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in ts_records %}
+              <tr>
+                {% for col in ts_columns %}<td>{{ row[col] }}</td>{% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">No Transaction Summary loaded.</p>
+    {% endif %}
+  </div>
+
+  <!-- DB_HITS -->
+  <div class="tab-pane fade p-3" id="dh" role="tabpanel" aria-labelledby="dh-tab">
+    {% if dh_records %}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              {% for col in dh_columns %}<th>{{ col }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in dh_records %}
+              <tr>
+                {% for col in dh_columns %}<td>{{ row[col] }}</td>{% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">No DB_HITS sheet found or it is empty.</p>
+    {% endif %}
+  </div>
+
+  <!-- Various Graphs -->
+  <div class="tab-pane fade p-3" id="vg" role="tabpanel" aria-labelledby="vg-tab">
+    <div class="btn-group mb-3" role="group">
+      <button class="btn btn-outline-primary btn-sm" data-chart="avg_line">Average (Line)</button>
+      <button class="btn btn-outline-primary btn-sm" data-chart="avg_bar">Average (Bar)</button>
+      <button class="btn btn-outline-primary btn-sm" data-chart="p90_line">90th (Line)</button>
+      <button class="btn btn-outline-primary btn-sm" data-chart="p90_bar">90th (Bar)</button>
+      <button class="btn btn-outline-primary btn-sm" data-chart="tp_bar">Throughput (Bar)</button>
+      <button class="btn btn-outline-primary btn-sm" data-chart="tp_line">Throughput (Line)</button>
+      <button class="btn btn-outline-primary btn-sm" data-chart="pf_pie">Pass vs Fail (Pie)</button>
+      <button class="btn btn-outline-secondary btn-sm" data-chart="ramp">Ramp Analysis (Users vs Time)</button>
+    </div>
+
+    <div id="chart_avg_line" class="chart-block"></div>
+    <div id="chart_avg_bar" class="chart-block d-none"></div>
+    <div id="chart_p90_line" class="chart-block d-none"></div>
+    <div id="chart_p90_bar" class="chart-block d-none"></div>
+    <div id="chart_tp_bar" class="chart-block d-none"></div>
+    <div id="chart_tp_line" class="chart-block d-none"></div>
+    <div id="chart_pf_pie" class="chart-block d-none"></div>
+    <div id="chart_ramp" class="chart-block d-none"></div>
+  </div>
+</div>
+
+<script>
+  window.FILE_LOADED = {{ 'true' if filename else 'false' }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

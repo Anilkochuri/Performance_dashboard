@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LoadRunner Interactive Charts</title>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .chart { width: 100%; max-width: 1100px; height: 420px; margin-bottom: 28px; }
+  </style>
+</head>
+<body>
+  <h1>LoadRunner Interactive Charts (IST)</h1>
+  <div class="chart" id="concurrency"></div>
+  <div class="chart" id="response_time"></div>
+  <div class="chart" id="pass_fail"></div>
+  <div class="chart" id="success_pie" style="max-width:520px;height:380px;"></div>
+
+  <script>
+    const times       = {{ times|tojson }};
+    const vu          = {{ vu|tojson }};
+    const avg_s       = {{ avg_s|tojson }};
+    const p90_s       = {{ p90_s|tojson }};
+    const pass_counts = {{ pass_counts|tojson }};
+    const fail_counts = {{ fail_counts|tojson }};
+    const phaseShapes = {{ phase_shapes|tojson }};
+
+    // Concurrency
+    Plotly.newPlot('concurrency', [{
+      x: times, y: vu, type: 'scatter', mode: 'lines+markers',
+      name: 'Virtual Users', line: { color: '#1f77b4' }
+    }], {
+      title: 'Virtual Users over Time (IST)',
+      xaxis: { title: 'Time (IST)' },
+      yaxis: { title: 'Virtual Users' },
+      shapes: phaseShapes,
+      hovermode: 'x unified'
+    });
+
+    // Response Time
+    Plotly.newPlot('response_time', [
+      { x: times, y: avg_s, type: 'scatter', mode: 'lines+markers', name: 'Avg (s)', line: { color: '#ff7f0e' } },
+      { x: times, y: p90_s, type: 'scatter', mode: 'lines+markers', name: 'P90 (s)', line: { color: '#9467bd' } }
+    ], {
+      title: 'Response Time Trends (IST)',
+      xaxis: { title: 'Time (IST)' },
+      yaxis: { title: 'Seconds' },
+      hovermode: 'x unified'
+    });
+
+    // Pass/Fail Stacked
+    Plotly.newPlot('pass_fail', [
+      { x: times, y: pass_counts, type: 'bar', name: 'Pass', marker: { color: '#2ca02c' } },
+      { x: times, y: fail_counts, type: 'bar', name: 'Fail', marker: { color: '#d62728' } }
+    ], {
+      barmode: 'stack',
+      title: 'Pass vs Fail per Interval',
+      xaxis: { title: 'Time (IST)' },
+      yaxis: { title: 'Count' },
+      hovermode: 'x'
+    });
+
+    // Success Pie
+    const totalPass = pass_counts.reduce((a,b)=>a+b,0);
+    const totalFail = fail_counts.reduce((a,b)=>a+b,0);
+    Plotly.newPlot('success_pie', [{
+      labels: ['Pass','Fail'], values: [totalPass, totalFail],
+      type: 'pie', marker: { colors: ['#2ca02c','#d62728'] }, hole: 0
+    }], { title: 'Overall Success vs Failure' });
+  </script>
+</body>
+</html>

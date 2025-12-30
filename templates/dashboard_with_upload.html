@@ -1,0 +1,136 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Performance Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <style>
+    .header { display:flex; justify-content:space-between; align-items:center; }
+    .actions { display:flex; gap:8px; }
+    .button { background:#3b82f6; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; text-decoration:none; }
+    .upload { display:flex; gap:8px; align-items:center; margin:12px 0 16px; }
+    .upload input[type=file] { padding:6px; }
+    .tabs { display:flex; gap:8px; border-bottom:1px solid #eee; margin-top:8px; }
+    .tab { padding:10px 14px; border:1px solid #eee; border-bottom:none; border-radius:8px 8px 0 0; background:#f8fafc; cursor:pointer; }
+    .tab.active { background:#fff; color:#3b82f6; font-weight:600; }
+    .tabcontent { display:none; padding:16px 8px; }
+    .tabcontent.active { display:block; }
+    .table { width:100%; border-collapse: collapse; }
+    .table th, .table td { border-bottom:1px solid #eee; padding:8px; text-align:left; }
+    .table th { background:#f8fafc; }
+    .notice { background:#fff7ed; color:#9a3412; padding:8px 12px; border:1px solid #fed7aa; border-radius:8px; }
+    .chart { height:360px; }
+    .chart.grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h2>Performance Dashboard</h2>
+    <div class="actions">
+      <a class="button" href="{{ url_for('download_xlsx') }}">Download XLSX (full)</a>
+      <a class="button" href="{{ url_for('download_csv') }}">Download CSV (Transaction Summary)</a>
+    </div>
+  </div>
+
+  <!-- CSV/XLSX Upload Form (VISIBLE) -->
+  <form class="upload" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+    <label for="file">Upload CSV/XLSX:</label>
+    <input id="file" type="file" name="file" accept=".csv,.xlsx" required />
+    <button class="button" type="submit">Upload and Refresh</button>
+  </form>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="notice">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="tabs">
+    <button class="tab active" onclick="openTab(event,'tab_summary')">Transaction Summary</button>
+    <button class="tab" onclick="openTab(event,'tab_graphs')">Graphs</button>
+    <button class="tab" onclick="openTab(event,'tab_observations')">Observations</button>
+    <button class="tab" onclick="openTab(event,'tab_dbhits')">DB_HITS</button>
+  </div>
+
+  <div id="tab_summary" class="tabcontent active">
+    {% if summary and summary|length > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            {% for k in summary[0].keys() %}<th>{{ k }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in summary %}
+            <tr>{% for v in row.values() %}<td>{{ v }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No Transaction Summary data. Ensure the file and sheet names match.</p>
+    {% endif %}
+  </div>
+
+  <div id="tab_graphs" class="tabcontent">
+    <div id="graphs-empty" class="notice" style="display:none;">No data available for charts. Populate Transaction Summary / upload raw CSV.</div>
+    <div class="chart grid">
+      <div id="chart_avg_all" class="chart"></div>
+      <div id="chart_p90_all" class="chart"></div>
+      <div id="chart_avg_p90_compare" class="chart"></div>
+      <div id="chart_txn_count_vs_avg" class="chart"></div>
+      <div id="chart_top_avg" class="chart"></div>
+      <div id="chart_pass_fail" class="chart"></div>
+      <div id="chart_success_pie" class="chart"></div>
+      <div id="chart_response_code_pie" class="chart"></div>
+    </div>
+  </div>
+
+  <div id="tab_observations" class="tabcontent">
+    {% if observations and observations|length > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            {% for k in observations[0].keys() %}<th>{{ k }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in observations %}
+            <tr>{% for v in row.values() %}<td>{{ v }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Observations sheet not found or has no rows. Ensure an 'Observations' sheet exists with a clean header row.</p>
+    {% endif %}
+  </div>
+
+  <div id="tab_dbhits" class="tabcontent">
+    {% if db_hits and db_hits|length > 0 %}
+      <table class="table">
+        <thead>
+          <tr>
+            {% for k in db_hits[0].keys() %}<th>{{ k }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in db_hits %}
+            <tr>{% for v in row.values() %}<td>{{ v }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>DB_HITS sheet not found or has no rows. Ensure a 'DB_HITS' sheet exists with a clean header row.</p>
+    {% endif %}
+  </div>
+</div>
+<script>
+  const GRAPHS = {{ graphs|safe }};
+  buildCharts(GRAPHS);
+</script>
+</body>
+</html>

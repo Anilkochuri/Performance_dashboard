@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}LoadRunner Tabs{% endblock %}
+{% block content %}
+<h2>LoadRunner Dashboard</h2>
+<p>Current file: <code>{{ file_path }}</code></p>
+
+<div class="tabs">
+  <button onclick="showTab('charts')">Interactive Charts</button>
+  <button onclick="showTab('observations')">Observations</button>
+  <button onclick="showTab('phases')">Phase Durations</button>
+  <button onclick="showTab('summary')">Transaction Summary</button>
+  <button onclick="showTab('totals')">Totals</button>
+  <button onclick="showTab('analytics')">Transaction Analytics</button>
+</div>
+
+<div id="panel-charts" class="panel {% if view=='charts' or view=='tabs' %}active{% endif %}">
+  <div id="concurrency" class="chart"></div>
+  <div id="response_time" class="chart"></div>
+  <div id="pass_fail" class="chart"></div>
+  <div id="success_pie" class="chart" style="max-width:520px;height:380px;"></div>
+  <div id="charts_warn" style="color:#a00;display:none;">No chart data available. Check sheet name/columns or use Debug link.</div>
+</div>
+
+<div id="panel-observations" class="panel">
+  <h3>Observations</h3>
+  {% if obs_rows and obs_rows|length > 0 %}
+  <table>
+    <tr><th>Band</th><th>Count</th></tr>
+    {% for r in obs_rows %}
+    <tr><td>{{ r.Band }}</td><td>{{ r.Count }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p style="color:#a00">No observations data.</p>
+  {% endif %}
+</div>
+
+<div id="panel-phases" class="panel">
+  <h3>Phase Durations</h3>
+  {% if phase_rows and phase_rows|length > 0 %}
+  <table>
+    <tr><th>Phase</th><th>Start (IST)</th><th>End (IST)</th><th>Duration (min)</th></tr>
+    {% for r in phase_rows %}
+    <tr><td>{{ r.phase }}</td><td>{{ r.start }}</td><td>{{ r.end }}</td><td>{{ '%.1f'|format(r.duration_min) }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p style="color:#a00">No phase durations available.</p>
+  {% endif %}
+</div>
+
+<div id="panel-summary" class="panel">
+  <h3>Transaction Summary</h3>
+  {% if txn_rows and txn_rows|length > 0 %}
+  <table>
+    <tr>
+      <th>Timestamp</th><th>Transaction</th><th>Phase</th><th>Virtual Users</th>
+      <th>Avg (s)</th><th>P90 (s)</th><th>Pass</th><th>Fail</th><th>Stop</th>
+    </tr>
+    {% for r in txn_rows %}
+    <tr>
+      <td>{{ r.timestamp }}</td><td>{{ r.transaction }}</td><td>{{ r.phase }}</td><td>{{ r.vu }}</td>
+      <td>{{ r.avg_s }}</td><td>{{ r.p90_s }}</td><td>{{ r.pass }}</td><td>{{ r.fail }}</td><td>{{ r.stop }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p style="color:#a00">No transaction summary rows.</p>
+  {% endif %}
+</div>
+
+<div id="panel-totals" class="panel">
+  <h3>Totals</h3>
+  {% if totals %}
+  <table>
+    <tr><th>Total Pass</th><th>Total Fail</th></tr>
+    <tr><td>{{ totals['Total Pass'] }}</td><td>{{ totals['Total Fail'] }}</td></tr>
+  </table>
+  {% else %}
+  <p style="color:#a00">No totals available.</p>
+  {% endif %}
+  <p style="margin-top:10px;">
+    <a href="{{ url_for('download_summary', file=file_path) }}">Download Summary XLSX</a>
+    &nbsp;|&nbsp;
+    <a href="{{ url_for('loadrunner_debug', file=file_path) }}" target="_blank">Debug (JSON)</a>
+  </p>
+</div>
+
+<div id="panel-analytics" class="panel">
+  <h3>Transaction Analytics</h3>
+  <div id="tx_pass_fail" class="chart"></div>
+  <div id="tx_avg_p90" class="chart"></div>
+  <div id="users_vs_tx" class="chart"></div>
+  <div id="tx_users_bar" class="chart"></div>
+  <div id="bubble_avg_p90" class="chart"></div>
+</div>
+
+<script>
+  // Tab switching
+  function showTab(name){
+    const ids = ['charts','observations','phases','summary','totals','analytics'];
+    ids.forEach(id => { document.getElementById('panel-' + id).classList.remove('active'); });
+    document.getElementById('panel-' + name).classList.add('active');
+  }
+
+  // Base chart data
+  const times       = {{ times|tojson }} || [];
+  const vu          = {{ vu|tojson }} || [];
+  const avg_s       = {{ avg_s|tojson }} || [];
+  const p90_s       = {{ p90_s|tojson }} || [];
+  const pass_counts = {{ pass_counts|tojson }} || [];
+  const fail_counts = {{ fail_counts|tojson }} || [];
+  const phaseShapes = {{ phase_shapes|tojson }} || [];
+
+  const emptyCharts = !(times.length && vu.length);
+  if (emptyCharts) {
+    document.getElementById('charts_warn').style.display = 'block';
+  }
+
+  if (!emptyCharts) {
+    // Concurrency
+    Plotly.newPlot('concurrency', [{ x: times, y: vu, type: 'scatter', mode: 'lines+markers', name: 'Virtual Users', line: { color: '#1f77b4' } }], {
+      title: 'Virtual Users over Time (IST)', xaxis: { title: 'Time (IST)' }, yaxis: { title: 'Virtual Users' }, shapes: phaseShapes, hovermode: 'x unified'
+    });
+    // Response Time
+    Plotly.newPlot('response_time', [
+      { x: times, y: avg_s, type: 'scatter', mode: 'lines+markers', name: 'Avg (s)', line: { color: '#ff7f0e' } },
+      { x: times, y: p90_s, type: 'scatter', mode: 'lines+markers', name: 'P90 (s)', line: { color: '#9467bd' } }
+    ], { title: 'Response Time Trends (IST)', xaxis: { title: 'Time (IST)' }, yaxis: { title: 'Seconds' }, hovermode: 'x unified' });
+    // Pass/Fail Stacked
+    Plotly.newPlot('pass_fail', [
+      { x: times, y: pass_counts, type: 'bar', name: 'Pass', marker: { color: '#2ca02c' } },
+      { x: times, y: fail_counts, type: 'bar', name: 'Fail', marker: { color: '#d62728' } }
+    ], { barmode: 'stack', title: 'Pass vs Fail per Interval', xaxis: { title: 'Time (IST)' }, yaxis: { title: 'Count' }, hovermode: 'x' });
+    // Success Pie
+    const totalPass = pass_counts.reduce((a,b)=>a+b,0);
+    const totalFail = fail_counts.reduce((a,b)=>a+b,0);
+    Plotly.newPlot('success_pie', [{ labels: ['Pass','Fail'], values: [totalPass, totalFail], type: 'pie', marker: { colors: ['#2ca02c','#d62728'] }, hole: 0 }], { title: 'Overall Success vs Failure' });
+  }
+
+  // ---------------- Transaction Analytics ----------------
+  const txNames     = {{ tx_names|tojson }} || [];
+  const txPass      = {{ tx_pass|tojson }} || [];
+  const txFail      = {{ tx_fail|tojson }} || [];
+  const txAvg       = {{ tx_avg|tojson }} || [];
+  const txP90       = {{ tx_p90|tojson }} || [];
+  const txUsersSum  = {{ tx_users_sum|tojson }} || [];
+  const txUsersMean = {{ tx_users_mean|tojson }} || [];
+  const txTotal     = {{ tx_total|tojson }} || [];
+  const txPassRate  = {{ tx_pass_rate|tojson }} || [];
+
+  if (txNames.length) {
+    Plotly.newPlot('tx_pass_fail', [
+      { x: txNames, y: txPass, type: 'bar', name: 'Pass', marker: { color: '#2ca02c' } },
+      { x: txNames, y: txFail, type: 'bar', name: 'Fail', marker: { color: '#d62728' } }
+    ], { barmode: 'stack', title: 'Transaction-wise Pass & Fail (Throughput)', xaxis: { title: 'Transaction' }, yaxis: { title: 'Count' } });
+
+    Plotly.newPlot('tx_avg_p90', [
+      { x: txNames, y: txAvg, type: 'bar', name: 'Avg (s)', marker: { color: '#ff7f0e' } },
+      { x: txNames, y: txP90, type: 'bar', name: 'P90 (s)', marker: { color: '#9467bd' } }
+    ], { barmode: 'group', title: 'Transaction-wise Avg & P90', xaxis: { title: 'Transaction' }, yaxis: { title: 'Seconds' } });
+
+    const usersVsPass = { x: txUsersSum, y: txPass, text: txNames, type: 'scatter', mode: 'markers+text', textposition: 'top center', name: 'Pass', marker: { color: '#2ca02c', size: 10 } };
+    const usersVsFail = { x: txUsersSum, y: txFail, text: txNames, type: 'scatter', mode: 'markers+text', textposition: 'top center', name: 'Fail', marker: { color: '#d62728', size: 10 } };
+    Plotly.newPlot('users_vs_tx', [usersVsPass, usersVsFail], { title: 'Users vs Transactions (Pass & Fail)', xaxis: { title: 'Users (sum)' }, yaxis: { title: 'Transactions (count)' } });
+
+    Plotly.newPlot('tx_users_bar', [{ x: txNames, y: txUsersSum, type: 'bar', name: 'Users (sum)', marker: { color: '#1f77b4' } }], { title: 'Transaction-wise Users (sum)', xaxis: { title: 'Transaction' }, yaxis: { title: 'Users' } });
+
+    function scaleSize(arr) {
+      const min= Math.min.apply(null, arr), max = Math.max.apply(null, arr);
+      return arr.map(v => 10 + 30 * ((v - min) / (max - min || 1))); // 10–40
+    }
+    const sizes = scaleSize(txTotal);
+    const colors = txPassRate;
+    const bubbleAvg = { x: txUsersSum, y: txAvg, text: txNames.map((n,i)=>`${n} (pass ${txPass[i]}, fail ${txFail[i]})`), type: 'scatter', mode: 'markers', name: 'Users vs Avg', marker: { size: sizes, sizemode: 'area', color: colors, colorscale: 'Viridis', showscale: true }, hovertemplate: '%{text}<br>Users=%{x}<br>Avg=%{y}<extra></extra>' };
+    const bubbleP90 = { x: txUsersSum, y: txP90, text: txNames.map((n,i)=>`${n} (pass ${txPass[i]}, fail ${txFail[i]})`), type: 'scatter', mode: 'markers', name: 'Users vs P90', marker: { size: sizes, sizemode: 'area', color: colors, colorscale: 'Viridis', showscale: true }, hovertemplate: '%{text}<br>Users=%{x}<br>P90=%{y}<extra></extra>' };
+    Plotly.newPlot('bubble_avg_p90', [bubbleAvg, bubbleP90], { title: 'Bubble: Users vs Avg & Users vs P90 (size=total tx, color=pass rate)', xaxis: { title: 'Users (sum)' }, yaxis: { title: 'Seconds' } });
+  }
+</script>
+{% endblock %}
